@@ -2,7 +2,7 @@
 
 namespace FontStash.NET
 {
-    internal class FonsAtlas : IDisposable
+    internal class FonsAtlas
     {
 
         public int width, height;
@@ -23,11 +23,6 @@ namespace FontStash.NET
             nodes[0].y = 0;
             nodes[0].width = (short)w;
             this.nnodes++;
-        }
-
-        public void Dispose()
-        {
-
         }
 
         public bool InsertNode(int idx, int x, int y, int w)
@@ -55,6 +50,26 @@ namespace FontStash.NET
                 nodes[i] = nodes[i + 1];
             }
             nnodes--;
+        }
+
+        public void Expand(int w, int h)
+        {
+            if (w > width)
+                InsertNode(nnodes, width, 0, w - width);
+            width = w;
+            height = h;
+        }
+
+        public void Reset(int w, int h)
+        {
+            width = w;
+            height = h;
+            nnodes = 0;
+
+            nodes[0].x = 0;
+            nodes[0].y = 0;
+            nodes[0].width = (short)w;
+            nnodes++;
         }
 
         public bool AddSkylineLevel(int idx, int x, int y, int w, int h)

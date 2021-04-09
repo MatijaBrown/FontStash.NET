@@ -91,7 +91,9 @@ namespace FontStash.NET.GL
 
         private void RenderDelete()
         {
-
+            if (_tex != 0)
+                _gl.DeleteTexture(_tex);
+            _tex = 0;
         }
 
         public Fontstash Create(int width, int height, int flags)

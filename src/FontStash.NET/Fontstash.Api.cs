@@ -21,7 +21,7 @@ namespace FontStash.NET
         internal const int MAX_FALLBACKS = 20;
 
         // Meta
-        private readonly FonsParams _params;
+        private FonsParams _params;
         private float _itw, _ith;
 
         // Texture
@@ -90,30 +90,110 @@ namespace FontStash.NET
 
         public void Dispose()
         {
-
+            _params.RenderDelete?.Invoke();
+            Array.Clear(_fonts, 0, _nfonts);
+            Array.Clear(_states, 0, _nstates);
+            _atlas = null;
+            GC.Collect();
         }
         #endregion
 
         #region Error
-        public void SetErrorCallback()
+        public void SetErrorCallback(HandleError callback)
         {
-
+            _handleError = callback;
         }
         #endregion
 
         #region Metrics
-        public void GetAtlasSize()
+        public void GetAtlasSize(out int width, out int height)
         {
-
+            width = _params.Width;
+            height = _params.Height;
         }
 
-        public bool ExpandAtlas()
+        public bool ExpandAtlas(int width, int height)
         {
+            width = Math.Max(width, _params.Width);
+            height = Math.Max(height, _params.Height);
+
+            if (width == _params.Width && height == _params.Height)
+                return true;
+
+            Flush();
+
+            if (_params.RenderResize?.Invoke(width, height) == false)
+                return false;
+
+            byte[] data = new byte[width * height];
+            for (int i = 0; i < _params.Height; i++)
+            {
+                int dstIdx = i * width;
+                int srcIdx = i * _params.Width;
+                Array.Copy(_texData, srcIdx, data, dstIdx, _params.Width);
+                if (width > _params.Width)
+                {
+                    Array.Fill<byte>(data, 0, dstIdx + _params.Width, width - _params.Width);
+                }
+            }
+            if (height > _params.Height)
+            {
+                Array.Fill<byte>(data, 0, _params.Height * width, (height - _params.Height) * width);
+            }
+
+            _texData = data;
+
+            _atlas.Expand(width, height);
+
+            int maxy = 0;
+            for (int i = 0; i < _atlas.nnodes; i++)
+                maxy = Math.Max(maxy, _atlas.nodes[i].y);
+            _dirtyRect[0] = 0;
+            _dirtyRect[1] = 0;
+            _dirtyRect[2] = _params.Width;
+            _dirtyRect[3] = maxy;
+
+            _params.Width = width;
+            _params.Height = height;
+            _itw = 1.0f / _params.Width;
+            _ith = 1.0f / _params.Height;
+
             return true;
         }
 
-        public bool ResetAtlas()
+        public bool ResetAtlas(int width, int height)
         {
+            Flush();
+
+            if (_params.RenderResize.Invoke(width, height) == false)
+                return false;
+
+            _atlas.Reset(width, height);
+
+            _texData = new byte[width * height];
+
+            _dirtyRect[0] = width;
+            _dirtyRect[1] = height;
+            _dirtyRect[2] = 0;
+            _dirtyRect[3] = 0;
+
+            for (int i = 0; i < _nfonts; i++)
+            {
+                FonsFont font = _fonts[i];
+                font.nglyphs = 0;
+                for (int j = 0; j < HASH_LUT_SIZE; j++)
+                {
+                    font.lut[j] = -1;
+                }
+            }
+
+            _params.Width = width;
+            _params.Height = height;
+            _itw = 1.0f / _params.Width;
+            _ith = 1.0f / _params.Height;
+
+            AddWhiteRect(2, 2);
+
             return true;
         }
         #endregion
@@ -164,14 +244,36 @@ namespace FontStash.NET
             return idx;
         }
 
-        public int GetFontByName()
+        public int GetFontByName(string name)
         {
-            return 0;
+            for (int i = 0; i < _nfonts; i++)
+            {
+                if (_fonts[i].name == name)
+                    return i;
+            }
+            return INVALID;
         }
 
-        public int AddFallbackFont()
+        public bool AddFallbackFont(int @base, int fallback)
         {
-            return 0;
+            FonsFont baseFont = _fonts[@base];
+            if (baseFont.nfallbacks < MAX_FALLBACKS)
+            {
+                baseFont.fallbacks[baseFont.nfallbacks++] = fallback;
+                return true;
+            }
+            return false;
+        }
+
+        public void ResetFallbackFont(int @base)
+        {
+            FonsFont baseFont = _fonts[@base];
+            baseFont.nfallbacks = 0;
+            baseFont.nglyphs = 0;
+            for (int i = 0; i < HASH_LUT_SIZE; i++)
+            {
+                baseFont.lut[i] = -1;
+            }
         }
         #endregion
 
@@ -270,10 +372,15 @@ namespace FontStash.NET
                 // empty
             } else if ((state.align & (int)FonsAlign.Right) != 0)
             {
-                // TODO
+                float[] _ = Array.Empty<float>();
+                float width = TextBounds(x, y, str, end, ref _);
+                x -= width;
+
             } else if ((state.align & (int)FonsAlign.Center) != 0)
             {
-                // TODO
+                float[] _ = Array.Empty<float>();
+                float width = TextBounds(x, y, str, end, ref _);
+                x -= width * 0.5f;
             }
 
             y += GetVertAlign(font, state.align, isize);
@@ -308,14 +415,97 @@ namespace FontStash.NET
 
             Flush();
 
-            return 0.0f;
+            return x;
         }
+
+        public float DrawText(float x, float y, string str) => DrawText(x, y, str, '\0');
         #endregion
 
         #region Measure Text
-        public float TextBounds(float x, float y, string str, string end, ref float[] bounds)
+        public float TextBounds(float x, float y, string str, char end, ref float[] bounds)
         {
-            return 0.0f;
+            FonsState state = GetState();
+            uint codepoint = 0;
+            uint utf8state = 0;
+            FonsGlyph glyph = null;
+            int prevGlyphIndex = -1;
+            short isize = (short)(state.size * 10.0f);
+            short iblur = (short)state.blur;
+
+            if (state.font < 0 || state.font >= _nfonts)
+                return x;
+            FonsFont font = _fonts[state.font];
+            if (font.data == null)
+                return x;
+
+            float scale = FonsTt.GetPixelHeightScale(font.font, (float)isize / 10.0f);
+
+            y += GetVertAlign(font, state.align, isize);
+
+            float minx = x, maxx = x;
+            float miny = y, maxy = y;
+            float startx = x;
+
+            for (int i = 0; i < str.Length; i++)
+            {
+                char c = str[i];
+                if (c == end)
+                    break;
+
+                if (Utf8.DecUtf8(ref utf8state, ref codepoint, c) != 0)
+                    continue;
+                glyph = GetGlyph(font, codepoint, isize, iblur, FonsGlyphBitmap.Optional);
+                if (glyph != null)
+                {
+                    FonsQuad q = GetQuad(font, prevGlyphIndex, glyph, scale, state.spacing, ref x, ref y);
+                    if (q.x0 < minx)
+                        minx = q.x0;
+                    if (q.x1 > maxx)
+                        maxx = q.x1;
+                    if ((_params.Flags & (uint)FonsFlags.ZeroTopleft) != 0)
+                    {
+                        if (q.y0 < miny)
+                            miny = q.y0;
+                        if (q.y1 > maxy)
+                            maxy = q.y1;
+                    }
+                    else
+                    {
+                        if (q.y1 < miny)
+                            miny = q.y1;
+                        if (q.y0 > maxy)
+                            maxy = q.y0;
+                    }
+                }
+                prevGlyphIndex = glyph != null ? glyph.index : -1;
+            }
+
+            float advance = x - startx;
+
+            if ((state.align & (int)FonsAlign.Left) != 0)
+            {
+                // empty
+            }
+            else if ((state.align & (int)FonsAlign.Right) != 0)
+            {
+                minx -= advance;
+                maxx -= advance;
+            }
+            else if ((state.align & (int)FonsAlign.Center) != 0)
+            {
+                minx -= advance * 0.5f;
+                maxx -= advance * 0.5f;
+            }
+
+            if (bounds.Length != 0)
+            {
+                bounds[0] = minx;
+                bounds[1] = miny;
+                bounds[2] = maxx;
+                bounds[3] = maxy;
+            }
+
+            return advance;
         }
 
         public void LineBounds()
@@ -366,8 +556,49 @@ namespace FontStash.NET
         #endregion
 
         #region Debug
-        public void DrawDebug()
+        public void DrawDebug(float x, float y)
         {
+            int w = _params.Width;
+            int h = _params.Height;
+            float u = w == 0 ? 0 : (1.0f / w);
+            float v = h == 0 ? 0 : (1.0f / h);
+
+            if (_nverts + 6 + 6 > VERTEX_COUNT)
+                Flush();
+
+            Vertex(x + 0, y + 0, u, v, 0x0fffffff);
+            Vertex(x + w, y + h, u, v, 0x0fffffff);
+            Vertex(x + w, y + 0, u, v, 0x0fffffff);
+
+            Vertex(x + 0, y + 0, u, v, 0x0fffffff);
+            Vertex(x + 0, y + h, u, v, 0x0fffffff);
+            Vertex(x + w, y + h, u, v, 0x0fffffff);
+
+            Vertex(x + 0, y + 0, 0, 0, 0xffffffff);
+            Vertex(x + w, y + h, 1, 1, 0xffffffff);
+            Vertex(x + w, y + 0, 1, 0, 0xffffffff);
+
+            Vertex(x + 0, y + 0, 0, 0, 0xffffffff);
+            Vertex(x + 0, y + h, 0, 1, 0xffffffff);
+            Vertex(x + w, y + h, 1, 1, 0xffffffff);
+
+            for (int i = 0; i < _atlas.nnodes; i++)
+            {
+                FonsAtlasNode n = _atlas.nodes[i];
+
+                if (_nverts + 6 > VERTEX_COUNT)
+                    Flush();
+
+                Vertex(x + n.x + 0, y + n.y + 0, u, v, 0xc00000ff);
+                Vertex(x + n.x + n.width, y + n.y + 1, u, v, 0xc00000ff);
+                Vertex(x + n.x + n.width, y + n.y + 0, u, v, 0xc00000ff);
+
+                Vertex(x + n.x + 0, y + n.y + 0, u, v, 0xc00000ff);
+                Vertex(x + n.x + 0, y + n.y + 1, u, v, 0xc00000ff);
+                Vertex(x + n.x + n.width, y + n.y + 1, u, v, 0xc00000ff);
+            }
+
+            Flush();
 
         }
         #endregion

@@ -25,9 +25,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="fonts\DroidSansJapanese.ttf">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
       <None Update="fonts\DroidSerif-Bold.ttf">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>

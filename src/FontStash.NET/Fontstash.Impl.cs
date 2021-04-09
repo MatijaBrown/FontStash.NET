@@ -5,6 +5,9 @@ namespace FontStash.NET
     public partial class Fontstash
     {
 
+        private const int APREC = 16;
+        private const int ZPREC = 7;
+
         private void AddWhiteRect(int w, int h)
         {
             int gx = 0, gy = 0;
@@ -48,6 +51,63 @@ namespace FontStash.NET
 
             _fonts[_nfonts++] = font;
             return _nfonts - 1;
+        }
+
+        private void BlurCols(int index, int w, int h, int dstStride, int alpha)
+        {
+            for (int y = 0; y < h; y++)
+            {
+                int z = 0;
+                for (int x = 1; x < w; x++)
+                {
+                    z += (alpha * (((int)(_texData[index + x]) << ZPREC) - z)) >> APREC;
+                    _texData[index + x] = (byte)(z >> ZPREC);
+                }
+                _texData[index + (w - 1)] = 0;
+                z = 0;
+                for (int x = w - 2; x >= 0; x--)
+                {
+                    z += (alpha * (((int)(_texData[index + x]) << ZPREC) - z)) >> APREC;
+                    _texData[index + x] = (byte)(z >> ZPREC);
+                }
+                _texData[index + 0] = 0;
+                index += dstStride;
+            }
+        }
+
+        private void BlurRows(int index, int w, int h, int dstStride, int alpha)
+        {
+            for (int x = 0; x < w; x++)
+            {
+                int z = 0;
+                for (int y = dstStride; y < h * dstStride; y += dstStride)
+                {
+                    z += (alpha * (((int)(_texData[index + y]) << ZPREC) - z)) >> APREC;
+                    _texData[index + y] = (byte)(z >> ZPREC);
+                }
+                _texData[index + ((h - 1) * dstStride)] = 0;
+                z = 0;
+                for (int y = (h - 2) * dstStride; y >= 0; y -= dstStride)
+                {
+                    z += (alpha * (((int)(_texData[index + y]) << ZPREC) - z)) >> APREC;
+                    _texData[index + y] = (byte)(z >> ZPREC);
+                }
+                _texData[index + 0] = 0;
+                index++;
+            }
+        }
+
+        private void Blur(int index, int w, int h, int dstStride, int blur)
+        {
+            if (blur < 1)
+                return;
+
+            float sigma = (float)blur * 0.57735f; // 0.57735 =~= 1 / Sqrt(3)
+            int alpha = (int)((1 << APREC) * (1.0f - MathF.Exp(-2.3f / (sigma + 1.0f))));
+            BlurRows(index, w, h, dstStride, alpha);
+            BlurCols(index, w, h, dstStride, alpha);
+            BlurRows(index, w, h, dstStride, alpha);
+            BlurCols(index, w, h, dstStride, alpha);
         }
 
         private FonsGlyph GetGlyph(FonsFont font, uint codepoint, short isize, short iblur, FonsGlyphBitmap bitmapOption)
@@ -147,10 +207,10 @@ namespace FontStash.NET
 
             // rasterize
             int index = (glyph.x0 + pad) + (glyph.y0 + pad) * _params.Width;
-            FonsTt.RenderGlyphBitmap(renderFont.font, _texData, index, gw + (pad * 2), gh - (pad * 2), _params.Width, scale, scale, g);
+            FonsTt.RenderGlyphBitmap(renderFont.font, _texData, index, gw - (pad * 2), gh - (pad * 2), _params.Width, scale, scale, g);
 
             // Ensure border pixel
-            index = glyph.x0 + glyph.y0 * _params.Width;
+            index = glyph.x0 + (glyph.y0 * _params.Width);
             for (int y = 0; y < gh; y++)
             {
                 _texData[index + (y * _params.Width)] = 0;
@@ -160,6 +220,13 @@ namespace FontStash.NET
             {
                 _texData[index + x] = 0;
                 _texData[index + ((gh - 1) * _params.Width)] = 0;
+            }
+
+            if (iblur > 0)
+            {
+                _nscratch = 0;
+                index = glyph.x0 + glyph.y0 * _params.Width;
+                Blur(index, gw, gh, _params.Width, iblur);
             }
 
             _dirtyRect[0] = Math.Min(_dirtyRect[0], glyph.x0);

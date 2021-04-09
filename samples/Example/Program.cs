@@ -14,7 +14,7 @@ namespace Example
 
         private static WindowHandle* window;
 
-        private static bool debug;
+        private static bool debug = false;
 
         private static void Dash(float dx, float dy)
         {
@@ -22,6 +22,15 @@ namespace Example
             gl.Color4(0, 0, 0, 0.5f);
             gl.Vertex2(dx - 5, dy);
             gl.Vertex2(dx - 10, dy);
+            gl.End();
+        }
+
+        private static void Line(float sx, float sy, float ex, float ey)
+        {
+            gl.Begin(GLEnum.Lines);
+            gl.Color4(0, 0, 0, 0.5f);
+            gl.Vertex2(sx, sy);
+            gl.Vertex2(ex, ey);
             gl.End();
         }
 
@@ -40,7 +49,6 @@ namespace Example
             int fontNormal = Fontstash.INVALID;
             int fontItalic = Fontstash.INVALID;
             int fontBold = Fontstash.INVALID;
-            int fontJapanese = Fontstash.INVALID;
             VideoMode* mode;
 
             Fontstash fs = null;
@@ -49,7 +57,7 @@ namespace Example
                 Environment.Exit(-1);
 
             mode = glfw.GetVideoMode(glfw.GetPrimaryMonitor());
-            window = glfw.CreateWindow(mode->Width - 40, mode->Height - 80, "Font Stash", null, null);
+            window = glfw.CreateWindow(mode->Width - 40, mode->Height - 80, "FontStash.NET", null, null);
             if (window == null)
             {
                 glfw.Terminate();
@@ -80,12 +88,6 @@ namespace Example
             if (fontNormal == Fontstash.INVALID)
             {
                 Console.Error.WriteLine("Could not add font bold!");
-                Environment.Exit(-1);
-            }
-            fontJapanese = fs.AddFont("sans", "./fonts/DroidSansJapanese.ttf", 0);
-            if (fontNormal == Fontstash.INVALID)
-            {
-                Console.Error.WriteLine("Could not add font japanese!");
                 Environment.Exit(-1);
             }
 
@@ -119,13 +121,15 @@ namespace Example
                 float sx = 50, sy = 50;
                 float dx = sx, dy = sy;
 
+                float asc, desc, lh;
+
                 Dash(dx, dy);
 
                 fs.ClearState();
 
                 fs.SetSize(124.0f);
                 fs.SetFont(fontNormal);
-                fs.VertMetrics(out float _, out float _, out float lh);
+                fs.VertMetrics(out asc, out desc, out lh);
                 dx = sx;
                 dy += lh;
                 Dash(dx, dy);
@@ -133,7 +137,93 @@ namespace Example
                 fs.SetSize(124.0f);
                 fs.SetFont(fontNormal);
                 fs.SetColour(white);
-                dx = fs.DrawText(dx, dy, "The quick ", '\0');
+                dx = fs.DrawText(dx, dy, "The quick", '\0');
+
+                fs.SetSize(48.0f);
+                fs.SetFont(fontItalic);
+                fs.SetColour(brown);
+                dx = fs.DrawText(dx, dy, "brown ", '\0');
+
+                fs.SetSize(24.0f);
+                fs.SetFont(fontNormal);
+                fs.SetColour(white);
+                dx = fs.DrawText(dx, dy, "fox ", '\0');
+
+                fs.VertMetrics(out asc, out desc, out lh);
+                dx = sx;
+                dy += lh * 1.2f;
+                Dash(dx, dy);
+                dx = fs.DrawText(dx, dy, "jumps ", '\0');
+                fs.SetFont(fontNormal);
+                dx = fs.DrawText(dx, dy, "the lazy ", '\0');
+                fs.SetFont(fontNormal);
+                dx = fs.DrawText(dx, dy, "dog.", '\0');
+
+                dx = sx;
+                dy += lh * 1.2f;
+                Dash(dx, dy);
+                fs.SetSize(12.0f);
+                fs.SetFont(fontNormal);
+                fs.SetColour(blue);
+                _ = fs.DrawText(dx, dy, "Now is the time for all good men to come to the aid of the party.");
+
+                fs.SetSize(18.0f);
+                fs.SetFont(fontNormal);
+                fs.SetColour(white);
+
+                dx = 50;
+                dy = 350;
+                Line(dx - 10, dy, dx + 250, dy);
+                fs.SetAlign((int)FonsAlign.Left | (int)FonsAlign.Top);
+                dx = fs.DrawText(dx, dy, "Top");
+                dx += 10;
+                fs.SetAlign((int)FonsAlign.Left | (int)FonsAlign.Middle);
+                dx = fs.DrawText(dx, dy, "Middle");
+                dx += 10;
+                fs.SetAlign((int)FonsAlign.Left | (int)FonsAlign.Baseline);
+                dx = fs.DrawText(dx, dy, "Baseline");
+                dx += 10;
+                fs.SetAlign((int)FonsAlign.Left | (int)FonsAlign.Bottom);
+                dx = fs.DrawText(dx, dy, "Bottom");
+
+                dx = 150;
+                dy = 400;
+                Line(dx, dy - 30, dx, dy + 80.0f);
+                fs.SetAlign((int)FonsAlign.Left | (int)FonsAlign.Baseline);
+                fs.DrawText(dx, dy, "Left");
+                dy += 30;
+                fs.SetAlign((int)FonsAlign.Center | (int)FonsAlign.Baseline);
+                fs.DrawText(dx, dy, "Center");
+                dy += 30;
+                fs.SetAlign((int)FonsAlign.Right | (int)FonsAlign.Baseline);
+                fs.DrawText(dx, dy, "Right");
+
+                dx = 500;
+                dy = 350;
+                fs.SetAlign((int)FonsAlign.Left | (int)FonsAlign.Baseline);
+
+                fs.SetSize(60.0f);
+                fs.SetFont(fontItalic);
+                fs.SetColour(white);
+                fs.SetSpacing(5.0f);
+                fs.SetBlur(10.0f);
+                fs.DrawText(dx, dy, "Blurry...");
+
+                dy += 50.0f;
+
+                fs.SetSize(18.0f);
+                fs.SetFont(fontBold);
+                fs.SetColour(black);
+                fs.SetSpacing(0.0f);
+                fs.SetBlur(3.0f);
+                fs.DrawText(dx, dy + 2, "DROP THAT SHADOW");
+
+                fs.SetColour(white);
+                fs.SetBlur(0.0f);
+                fs.DrawText(dx, dy, "DROP THAT SHADOW");
+
+                if (debug)
+                    fs.DrawDebug(800.0f, 50.0f);
 
                 gl.Enable(EnableCap.DepthTest);
 
