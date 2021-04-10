@@ -66,18 +66,16 @@ The example seen above has the same effect as the "manual" example.
 
 #### Examples
 Two example projects using OpenGL can be found in 'samples' directory.
-*Without debug atlas displayed*
-![Example without Debug](/docs/images/example_nodebug.png)
-Format: ![Alt Text](url)
-*With debug atlas displayed*
-![Example without Debug](/docs/images/example_debug.png)
-Format: ![Alt Text](url)
+*Without debug atlas displayed*<br/><br/>
+![Example without Debug](/docs/images/example_nodebug.PNG)
+*With debug atlas displayed*<br/><br/>
+![Example without Debug](./docs/image/example_debug.PNG)
 
 ## Credits
-Obviously [mnemononen/fontstash](https://github.com/memononen/fontstash)
-[StbTrueTypeSharp](https://github.com/StbSharp/StbTrueTypeSharp) for the StbTrueType implementation
-[Silk.NET](https://github.com/dotnet/Silk.NET) for the OpenGL implementation in the helper classes.
+Obviously [mnemononen/fontstash](https://github.com/memononen/fontstash)<br/><br/>
+[StbTrueTypeSharp](https://github.com/StbSharp/StbTrueTypeSharp) for the StbTrueType implementation<br/><br/>
+[Silk.NET](https://github.com/dotnet/Silk.NET) for the OpenGL implementation in the helper classes.<br/><br/>
 
 ## License
-> FontStashSharp uses the MIT-License
-> fontstash uses the ZLib-License
+> FontStashSharp uses the MIT-License<br/><br/>
+> fontstash uses the ZLib-License<br/><br/>
