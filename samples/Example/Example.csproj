@@ -14,7 +14,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\src\FontStash.NET.GL\FontStash.NET.GL.csproj" />
+        <ProjectReference Include="..\..\src\FontStash.NET.GL.Legacy\FontStash.NET.GL.Legacy.csproj" />
         <ProjectReference Include="..\..\src\FontStash.NET\FontStash.NET.csproj" />
 	    <PackageReference Include="Silk.NET.Glfw" Version="2.3.0" />
 		<PackageReference Include="Silk.NET.OpenGL.Legacy" Version="2.3.0" />

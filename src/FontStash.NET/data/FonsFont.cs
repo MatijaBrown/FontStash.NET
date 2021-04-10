@@ -2,7 +2,7 @@
 
 namespace FontStash.NET
 {
-    internal class FonsFont
+    public class FonsFont
     {
 
         public FonsTtImpl font;

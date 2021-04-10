@@ -4,7 +4,7 @@ using Silk.NET.GLFW;
 using Silk.NET.OpenGL.Legacy;
 using System;
 
-namespace Example
+namespace Error
 {
     unsafe class Program
     {
@@ -12,9 +12,8 @@ namespace Example
         private static Glfw glfw;
         private static GL gl;
 
-        private static WindowHandle* window;
-
-        private static bool debug = false;
+        private static Fontstash fs = null;
+        private static int size = 90;
 
         private static void Dash(float dx, float dy)
         {
@@ -34,24 +33,78 @@ namespace Example
             gl.End();
         }
 
-        private static unsafe void Key(WindowHandle* window, Keys key, int scancode, InputAction action, KeyModifiers mods)
+        private static void ExpandAtlas()
         {
-            if (key == Keys.Escape && action == InputAction.Press)
-                glfw.SetWindowShouldClose(window, true);
-            if (key == Keys.Space && action == InputAction.Press)
-                debug = !debug;
+            fs.GetAtlasSize(out int w, out int h);
+            if (w < h)
+                w *= 2;
+            else
+                h *= 2;
+            fs.ExpandAtlas(w, h);
+            Console.WriteLine("Expanded atlas to " + w + " X " + h);
         }
 
-        static unsafe void Main(string[] args)
+        private static void ResetAtlas()
+        {
+            fs.ResetAtlas(256, 256);
+            Console.WriteLine("Reset atlas to 256 X 256");
+        }
+
+        private static void Key(WindowHandle* window, Keys key, int scancode, InputAction action, KeyModifiers mods)
+        {
+            if (key == Keys.Escape && action == InputAction.Press)
+            {
+                glfw.SetWindowShouldClose(window, true);
+            }
+            if (key == Keys.E && action == InputAction.Press)
+            {
+                ExpandAtlas();
+            }
+            if (key == Keys.R && action == InputAction.Press)
+            {
+                ResetAtlas();
+            }
+            if (key == Keys.Up && action == InputAction.Press)
+            {
+                size += 10;
+            }
+            if (key == Keys.Down && action == InputAction.Press)
+            {
+                size -= 10;
+                if (size < 20)
+                    size = 20;
+            }
+        }
+
+        private static void StashError(FonsErrorCode error, int val)
+        {
+            switch (error)
+            {
+                case FonsErrorCode.AtlasFull:
+                    Console.WriteLine("Atlas full!");
+                    ExpandAtlas();
+                    break;
+                case FonsErrorCode.ScratchFull:
+                    Console.WriteLine("Scratch full, tried to allocate " + val + " has " + Fontstash.SCRATCH_BUF_SIZE);
+                    break;
+                case FonsErrorCode.StatesOverflow:
+                    Console.WriteLine("States overflow!");
+                    break;
+                case FonsErrorCode.StatesUnderflow:
+                    Console.WriteLine("States underflow");
+                    break;
+            }
+        }
+
+        static void Main(string[] args)
         {
             glfw = Glfw.GetApi();
 
             int fontNormal = Fontstash.INVALID;
             int fontItalic = Fontstash.INVALID;
             int fontBold = Fontstash.INVALID;
+            WindowHandle* window;
             VideoMode* mode;
-
-            Fontstash fs = null;
 
             if (!glfw.Init())
                 Environment.Exit(-1);
@@ -71,6 +124,8 @@ namespace Example
 
             GLFons glfons = new(gl);
             fs = glfons.Create(512, 512, (int)FonsFlags.ZeroTopleft);
+
+            fs.SetErrorCallback(StashError);
 
             fontNormal = fs.AddFont("sans", "./fonts/DroidSerif-Regular.ttf", 0);
             if (fontNormal == Fontstash.INVALID)
@@ -127,104 +182,38 @@ namespace Example
 
                 fs.ClearState();
 
-                fs.SetSize(124.0f);
+                fs.SetSize(size);
                 fs.SetFont(fontNormal);
                 fs.VertMetrics(out asc, out desc, out lh);
                 dx = sx;
                 dy += lh;
                 Dash(dx, dy);
 
-                fs.SetSize(124.0f);
+                fs.SetSize(size);
                 fs.SetFont(fontNormal);
                 fs.SetColour(white);
-                dx = fs.DrawText(dx, dy, "The quick", '\0');
+                dx = fs.DrawText(dx, dy, "The quick ");
 
-                fs.SetSize(48.0f);
+                fs.SetSize(size / 2);
                 fs.SetFont(fontItalic);
                 fs.SetColour(brown);
-                dx = fs.DrawText(dx, dy, "brown ", '\0');
+                dx = fs.DrawText(dx, dy, "brown ");
 
-                fs.SetSize(24.0f);
+                fs.SetSize(size / 3);
                 fs.SetFont(fontNormal);
                 fs.SetColour(white);
-                dx = fs.DrawText(dx, dy, "fox ", '\0');
+                dx = fs.DrawText(dx, dy, "fox ");
 
-                fs.VertMetrics(out asc, out desc, out lh);
-                dx = sx;
-                dy += lh * 1.2f;
-                Dash(dx, dy);
-                fs.SetFont(fontItalic);
-                dx = fs.DrawText(dx, dy, "jumps over ", '\0');
-                fs.SetFont(fontBold);
-                dx = fs.DrawText(dx, dy, "the lazy ", '\0');
-                fs.SetFont(fontNormal);
-                dx = fs.DrawText(dx, dy, "dog.", '\0');
-
-                dx = sx;
-                dy += lh * 1.2f;
-                Dash(dx, dy);
-                fs.SetSize(12.0f);
-                fs.SetFont(fontNormal);
-                fs.SetColour(blue);
-                _ = fs.DrawText(dx, dy, "Now is the time for all good men to come to the aid of the party.");
-
-                fs.SetSize(18.0f);
+                fs.SetSize(14);
                 fs.SetFont(fontNormal);
                 fs.SetColour(white);
+                fs.DrawText(20, height - 20, "Press UP / DOWN keys to change font size and to trigger atlas full callback, R to reset atlas, E to expand atlas.");
 
-                dx = 50;
-                dy = 350;
-                Line(dx - 10, dy, dx + 250, dy);
-                fs.SetAlign((int)FonsAlign.Left | (int)FonsAlign.Top);
-                dx = fs.DrawText(dx, dy, "Top");
-                dx += 10;
-                fs.SetAlign((int)FonsAlign.Left | (int)FonsAlign.Middle);
-                dx = fs.DrawText(dx, dy, "Middle");
-                dx += 10;
-                fs.SetAlign((int)FonsAlign.Left | (int)FonsAlign.Baseline);
-                dx = fs.DrawText(dx, dy, "Baseline");
-                dx += 10;
-                fs.SetAlign((int)FonsAlign.Left | (int)FonsAlign.Bottom);
-                dx = fs.DrawText(dx, dy, "Bottom");
+                fs.GetAtlasSize(out int atlasw, out int atlash);
+                string msg = "Atlas: " + atlasw + " X " + atlash;
+                fs.DrawText(20, height - 50, msg);
 
-                dx = 150;
-                dy = 400;
-                Line(dx, dy - 30, dx, dy + 80.0f);
-                fs.SetAlign((int)FonsAlign.Left | (int)FonsAlign.Baseline);
-                fs.DrawText(dx, dy, "Left");
-                dy += 30;
-                fs.SetAlign((int)FonsAlign.Center | (int)FonsAlign.Baseline);
-                fs.DrawText(dx, dy, "Center");
-                dy += 30;
-                fs.SetAlign((int)FonsAlign.Right | (int)FonsAlign.Baseline);
-                fs.DrawText(dx, dy, "Right");
-
-                dx = 500;
-                dy = 350;
-                fs.SetAlign((int)FonsAlign.Left | (int)FonsAlign.Baseline);
-
-                fs.SetSize(60.0f);
-                fs.SetFont(fontItalic);
-                fs.SetColour(white);
-                fs.SetSpacing(5.0f);
-                fs.SetBlur(10.0f);
-                fs.DrawText(dx, dy, "Blurry...");
-
-                dy += 50.0f;
-
-                fs.SetSize(18.0f);
-                fs.SetFont(fontBold);
-                fs.SetColour(black);
-                fs.SetSpacing(0.0f);
-                fs.SetBlur(3.0f);
-                fs.DrawText(dx, dy + 2, "DROP THAT SHADOW");
-
-                fs.SetColour(white);
-                fs.SetBlur(0.0f);
-                fs.DrawText(dx, dy, "DROP THAT SHADOW");
-
-                if (debug)
-                    fs.DrawDebug(800.0f, 50.0f);
+                fs.DrawDebug(width - atlasw - 20, 20.0f);
 
                 gl.Enable(EnableCap.DepthTest);
 
@@ -233,7 +222,9 @@ namespace Example
             }
 
             glfons.Dispose();
+
             glfw.Terminate();
+            Environment.Exit(0);
         }
 
     }

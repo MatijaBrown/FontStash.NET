@@ -2,7 +2,7 @@
 
 namespace FontStash.NET
 {
-    internal class FonsTtImpl
+    public class FonsTtImpl
     {
 
         public StbTrueType.stbtt_fontinfo font;

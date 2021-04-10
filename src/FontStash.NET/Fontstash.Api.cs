@@ -11,14 +11,14 @@ namespace FontStash.NET
 
         public const int INVALID = -1;
 
-        internal const int SCRATCH_BUF_SIZE = 96000;
-        internal const int HASH_LUT_SIZE = 256;
-        internal const int INIT_FONTS = 4;
-        internal const int INIT_GLYPHS = 256;
-        internal const int INIT_ATLAS_NODES = 256;
-        internal const int VERTEX_COUNT = 1024;
-        internal const int MAX_STATES = 20;
-        internal const int MAX_FALLBACKS = 20;
+        public const int SCRATCH_BUF_SIZE = 96000;
+        public const int HASH_LUT_SIZE = 256;
+        public const int INIT_FONTS = 4;
+        public const int INIT_GLYPHS = 256;
+        public const int INIT_ATLAS_NODES = 256;
+        public const int VERTEX_COUNT = 1024;
+        public const int MAX_STATES = 20;
+        public const int MAX_FALLBACKS = 20;
 
         // Meta
         private FonsParams _params;
@@ -508,9 +508,30 @@ namespace FontStash.NET
             return advance;
         }
 
-        public void LineBounds()
+        public void LineBounds(float y, out float miny, out float maxy)
         {
+            miny = maxy = INVALID;
+            FonsState state = GetState();
 
+            if (state.font < 0 || state.font >= _nfonts)
+                return;
+            FonsFont font = _fonts[state.font];
+            short isize = (short)(state.size * 10.0f);
+            if (font.data == null)
+                return;
+
+            y += GetVertAlign(font, state.align, isize);
+
+            if ((_params.Flags & (byte)FonsFlags.ZeroTopleft) != 0)
+            {
+                miny = y - font.ascender * (float)isize / 10.0f;
+                maxy = miny + font.lineh * isize / 10.0f;
+            }
+            else
+            {
+                miny = y + font.ascender * (float)isize / 10.0f;
+                maxy = miny - font.lineh * isize / 10.0f;
+            }
         }
 
         public void VertMetrics(out float ascender, out float descender, out float lineh)
@@ -532,26 +553,112 @@ namespace FontStash.NET
         #endregion
 
         #region Text iterator
-        public bool TextIterInit()
+        public bool TextIterInit(out FonsTextIter iter, float x, float y, string str, char end)
         {
+            FonsState state = GetState();
+
+            iter = default;
+
+            if (state.font < 0 || state.font >= _nfonts)
+                return false;
+            FonsFont font = _fonts[state.font];
+            if (font.data == null)
+                return false;
+
+            iter.isize = (short)(state.size * 10.0f);
+            iter.iblur = (short)state.blur;
+            iter.scale = FonsTt.GetPixelHeightScale(font.font, (float)iter.isize / 10.0f);
+
+            if ((state.align & (int)FonsAlign.Left) != 0)
+            {
+                // empty
+            }
+            else if ((state.align & (int)FonsAlign.Right) != 0)
+            {
+                float[] _ = Array.Empty<float>();
+                float width = TextBounds(x, y, str, end, ref _);
+                x -= width;
+            }
+            else if ((state.align & (int)FonsAlign.Center) != 0)
+            {
+                float[] _ = Array.Empty<float>();
+                float width = TextBounds(x, y, str, end, ref _);
+                x -= width * 0.5f;
+            }
+
+            y += GetVertAlign(iter.font, state.align, iter.isize);
+
+            iter.x = iter.nextx = x;
+            iter.y = iter.nexty = y;
+            iter.spacing = state.spacing;
+            iter.str = str;
+            iter.next = str;
+            iter.end = end;
+            iter.codepoint = 0;
+            iter.prevGlyphIndex = -1;
+
             return true;
         }
 
-        public bool TextIterNext()
+        public bool TextIterNext(ref FonsTextIter iter, FonsQuad quad)
         {
+            FonsGlyph glyph = null;
+            string str = iter.next;
+            iter.str = iter.next;
+
+            if (str[0] == iter.end)
+            {
+                return false;
+            }
+
+            int i;
+            for (i = 0; i < str.Length; i++)
+            {
+                char c = str[i];
+                if (c == iter.end)
+                    break;
+
+                if (Utf8.DecUtf8(ref iter.utf8state, ref iter.codepoint, c) != 0)
+                    continue;
+
+                iter.x = iter.nextx;
+                iter.y = iter.nexty;
+                glyph = GetGlyph(iter.font, iter.codepoint, iter.isize, iter.iblur, 0);
+                if (glyph != null)
+                    GetQuad(iter.font, iter.prevGlyphIndex, glyph, iter.scale, iter.spacing, ref iter.nextx, ref iter.nexty);
+                iter.prevGlyphIndex = glyph != null ? glyph.index : INVALID;
+                break;
+            }
+            iter.next = str.Remove(0, i);
+
             return true;
         }
         #endregion
 
         #region Pull Texture Changes
-        public string GetTextureData()
+        public byte[] GetTextureData(out int width, out int height)
         {
-            return null;
+            width = _params.Width;
+            height = _params.Height;
+            return _texData;
         }
 
-        public bool ValidateTexture()
+        public bool ValidateTexture(ref int[] dirty)
         {
-            return true;
+            if (_dirtyRect[0] < _dirtyRect[2] && _dirtyRect[1] < _dirtyRect[3])
+            {
+                dirty[0] = _dirtyRect[0];
+                dirty[1] = _dirtyRect[1];
+                dirty[2] = _dirtyRect[2];
+                dirty[3] = _dirtyRect[3];
+
+                _dirtyRect[0] = _params.Width;
+                _dirtyRect[1] = _params.Height;
+                _dirtyRect[2] = 0;
+                _dirtyRect[3] = 0;
+                return true;
+            }
+            return false;
         }
         #endregion
 

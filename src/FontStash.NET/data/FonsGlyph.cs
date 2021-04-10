@@ -1,6 +1,6 @@
 ﻿namespace FontStash.NET
 {
-    internal class FonsGlyph
+    public class FonsGlyph
     {
 
         public uint codepoint;
