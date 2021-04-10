@@ -64,7 +64,7 @@ Fontstash fs = glFons.Create(512, 512, (int)FonsFlags.ZeroTopleft);
 ```
 The example seen above has the same effect as the "manual" example.
 
-#### Examples
+### Examples
 Two example projects using OpenGL can be found in 'samples' directory.<br/><br/>
 *Without debug atlas displayed*<br/><br/>
 ![Example without Debug](/docs/images/example_nodebug.PNG)
