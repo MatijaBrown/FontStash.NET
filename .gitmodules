@@ -1,3 +1,6 @@
 [submodule "lib/fontstash"]
 	path = lib/fontstash
 	url = https://github.com/memononen/fontstash
+[submodule "ngpackages/StbTrueTypeSharp"]
+	path = ngpackages/StbTrueTypeSharp
+	url = https://github.com/StbSharp/StbTrueTypeSharp
