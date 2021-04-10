@@ -1,5 +1,5 @@
 # FontStash.NET
-A port of [memononen/fontstash](https://github.com/memononen/fontstash) to C# for SilkyNvg.
+A port of [memononen/fontstash](https://github.com/memononen/fontstash) to C# for [SilkyNvg](https://github.com/MatijaBrown/SilkyNvg).
 
 ## Usage / Examples
 > Examples can be found in the 'samples' directory.
@@ -30,11 +30,11 @@ To finally create the Fontstash context and instance, do the following:
 var fons = new Fontstash(prams);
 ```
 
-Now one can use the Fontstash instance, the same as [memononen/fontstash](https://github.com/memononen/fontstash),
-only without havning to parse a context, as the context information is stored per api-instance.
+Now, one can use the Fontstash instance the same as [memononen/fontstash](https://github.com/memononen/fontstash),
+apart from not having to parse a context with every call, as the context information is stored per api-instance.
 ```cs
 // Create a new font
-// Set last parameter to 0 always, incase use StbTrueType font indices.
+// Set last parameter to 0 always, incase using StbTrueType font indices.
 int fornNormal = fons.CreateFont("testFont", "./fonts/verdana.ttf", 0);
 
 // Rendering method here
@@ -46,15 +46,16 @@ uint fontColourRed = GetColour(255, 0, 0, 255);
 fons.SetFont(fontNormal);
 fons.SetSize(72.0f);
 fons.SetColour(fontColourRed);
+// FontStash.DrawText(float, float string) returns the end X-Position of the rendered string on the window.
 float endX = fons.DrawText(20, 100, "I am the walrus!");
 
-// to debug, draw the debug screen
-fons.DrawDebug(debugX, debugY);
+// render the font atlas in it's current state
+fons.DrawDebug(800, 200);
 ```
 
 #### OpenGL utillities
 When using OpenGL FontStash.NET, the same as fontstash, provids utillity classes
-to aid rendering. They are located int either ``src/FontStash.NET.GL.Legacy`` for legacy OpenGL
+to aid rendering. They are located in either ``src/FontStash.NET.GL.Legacy`` for legacy OpenGL
 and ``src/FontStash.NET.GL`` for modern OpenGL respectively. These use [Silk.NET](https://github.com/dotnet/Silk.NET)
 for rendering, so a compatible OpenGL object must be parsed.
 ```cs
@@ -62,3 +63,21 @@ GLFons glFons = new GLFons(gl);
 Fontstash fs = glFons.Create(512, 512, (int)FonsFlags.ZeroTopleft);
 ```
 The example seen above has the same effect as the "manual" example.
+
+#### Examples
+Two example projects using OpenGL can be found in 'samples' directory.
+*Without debug atlas displayed*
+![Example without Debug](/docs/images/example_nodebug.png)
+Format: ![Alt Text](url)
+*With debug atlas displayed*
+![Example without Debug](/docs/images/example_debug.png)
+Format: ![Alt Text](url)
+
+## Credits
+Obviously [mnemononen/fontstash](https://github.com/memononen/fontstash)
+[StbTrueTypeSharp](https://github.com/StbSharp/StbTrueTypeSharp) for the StbTrueType implementation
+[Silk.NET](https://github.com/dotnet/Silk.NET) for the OpenGL implementation in the helper classes.
+
+## License
+> FontStashSharp uses the MIT-License
+> fontstash uses the ZLib-License
