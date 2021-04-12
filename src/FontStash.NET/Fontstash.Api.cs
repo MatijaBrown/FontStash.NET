@@ -208,6 +208,8 @@ namespace FontStash.NET
             return AddFontMem(name, data, 1, fontIndex);
         }
 
+        public int AddFont(string name, string path) => AddFont(name, path, 0);
+
         public int AddFontMem(string name, byte[] data, int freeData, int fontIndex)
         {
             int idx = AllocFont();
@@ -243,6 +245,8 @@ namespace FontStash.NET
 
             return idx;
         }
+
+        public int AddFontMem(string name, byte[] data, int freeData) => AddFontMem(name, data, freeData, 0);
 
         public int GetFontByName(string name)
         {
