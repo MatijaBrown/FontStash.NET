@@ -77,5 +77,5 @@ Obviously [mnemononen/fontstash](https://github.com/memononen/fontstash)<br/><br
 [Silk.NET](https://github.com/dotnet/Silk.NET) for the OpenGL implementation in the helper classes.<br/><br/>
 
 ## License
-> FontStashSharp uses the MIT-License<br/><br/>
+> FontStash.NET uses the MIT-License<br/><br/>
 > fontstash uses the ZLib-License<br/><br/>
