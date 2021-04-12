@@ -183,14 +183,14 @@ namespace FontStash.NET.GL
         public Fontstash Create(int width, int height, int flags)
         {
             FonsParams prams = default;
-            prams.Width = width;
-            prams.Height = height;
-            prams.Flags = (byte)flags;
-            prams.RenderCreate = RenderCreate;
-            prams.RenderResize = RenderResize;
-            prams.RenderUpdate = RenderUpdate;
-            prams.RenderDraw = RenderDraw;
-            prams.RenderDelete = RenderDelete;
+            prams.width = width;
+            prams.height = height;
+            prams.flags = (byte)flags;
+            prams.renderCreate = RenderCreate;
+            prams.renderResize = RenderResize;
+            prams.renderUpdate = RenderUpdate;
+            prams.renderDraw = RenderDraw;
+            prams.renderDelete = RenderDelete;
 
             _fs = new Fontstash(prams);
             return _fs;
