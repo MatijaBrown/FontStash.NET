@@ -10,16 +10,16 @@
     public struct FonsParams
     {
 
-        public int Width { internal get; set; }
-        public int Height { internal get; set; }
+        public int width;
+        public int height;
 
-        public byte Flags { internal get; set; }
+        public byte flags;
 
-        public RenderCreate RenderCreate { internal get; set; }
-        public RenderResize RenderResize { internal get; set; }
-        public RenderUpdate RenderUpdate { internal get; set; }
-        public RenderDraw RenderDraw { internal get; set; }
-        public RenderDelete RenderDelete { internal get; set; }
+        public RenderCreate renderCreate;
+        public RenderResize renderResize;
+        public RenderUpdate renderUpdate;
+        public RenderDraw renderDraw;
+        public RenderDelete renderDelete;
 
     }
 }

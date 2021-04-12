@@ -100,14 +100,14 @@ namespace FontStash.NET.GL.Legacy
         {
             FonsParams prams = new()
             {
-                Width = width,
-                Height = height,
-                Flags = (byte)flags,
-                RenderCreate = RenderCreate,
-                RenderResize = RenderResize,
-                RenderUpdate = RenderUpdate,
-                RenderDraw = RenderDraw,
-                RenderDelete = RenderDelete
+                width = width,
+                height = height,
+                flags = (byte)flags,
+                renderCreate = RenderCreate,
+                renderResize = RenderResize,
+                renderUpdate = RenderUpdate,
+                renderDraw = RenderDraw,
+                renderDelete = RenderDelete
             };
 
             _fons = new Fontstash(prams);

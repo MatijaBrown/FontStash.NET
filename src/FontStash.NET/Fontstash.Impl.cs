@@ -14,14 +14,14 @@ namespace FontStash.NET
             if (!_atlas.AddRect(w, h, ref gx, ref gy))
                 return;
 
-            int index = gx + (gy * _params.Width);
+            int index = gx + (gy * _params.width);
             for (int y = 0; y < h; y++)
             {
                 for (int x = 0; x < w; x++)
                 {
                     _texData[index + x] = 0xff;
                 }
-                index += _params.Width;
+                index += _params.width;
             }
 
             _dirtyRect[0] = Math.Min(_dirtyRect[0], gx);
@@ -206,27 +206,27 @@ namespace FontStash.NET
             }
 
             // rasterize
-            int index = (glyph.x0 + pad) + (glyph.y0 + pad) * _params.Width;
-            FonsTt.RenderGlyphBitmap(renderFont.font, _texData, index, gw - (pad * 2), gh - (pad * 2), _params.Width, scale, scale, g);
+            int index = (glyph.x0 + pad) + (glyph.y0 + pad) * _params.width;
+            FonsTt.RenderGlyphBitmap(renderFont.font, _texData, index, gw - (pad * 2), gh - (pad * 2), _params.width, scale, scale, g);
 
             // Ensure border pixel
-            index = glyph.x0 + (glyph.y0 * _params.Width);
+            index = glyph.x0 + (glyph.y0 * _params.width);
             for (int y = 0; y < gh; y++)
             {
-                _texData[index + (y * _params.Width)] = 0;
-                _texData[index + (gw - 1 + y * _params.Width)] = 0;
+                _texData[index + (y * _params.width)] = 0;
+                _texData[index + (gw - 1 + y * _params.width)] = 0;
             }
             for (int x = 0; x < gw; x++)
             {
                 _texData[index + x] = 0;
-                _texData[index + ((gh - 1) * _params.Width)] = 0;
+                _texData[index + ((gh - 1) * _params.width)] = 0;
             }
 
             if (iblur > 0)
             {
                 _nscratch = 0;
-                index = glyph.x0 + glyph.y0 * _params.Width;
-                Blur(index, gw, gh, _params.Width, iblur);
+                index = glyph.x0 + glyph.y0 * _params.width;
+                Blur(index, gw, gh, _params.width, iblur);
             }
 
             _dirtyRect[0] = Math.Min(_dirtyRect[0], glyph.x0);
@@ -255,7 +255,7 @@ namespace FontStash.NET
             float y1 = (short)(glyph.y1 - 1);
 
             float rx, ry;
-            if ((_params.Flags & (byte)FonsFlags.ZeroTopleft) != 0)
+            if ((_params.flags & (byte)FonsFlags.ZeroTopleft) != 0)
             {
                 rx = MathF.Floor(x + xoff);
                 ry = MathF.Floor(y + yoff);
@@ -294,16 +294,16 @@ namespace FontStash.NET
         {
             if (_dirtyRect[0] < _dirtyRect[2] && _dirtyRect[1] < _dirtyRect[3])
             {
-                _params.RenderUpdate?.Invoke(_dirtyRect, _texData);
-                _dirtyRect[0] = _params.Width;
-                _dirtyRect[1] = _params.Height;
+                _params.renderUpdate?.Invoke(_dirtyRect, _texData);
+                _dirtyRect[0] = _params.width;
+                _dirtyRect[1] = _params.height;
                 _dirtyRect[2] = 0;
                 _dirtyRect[3] = 0;
             }
 
             if (_nverts > 0)
             {
-                _params.RenderDraw?.Invoke(_verts, _tcoords, _colours, _nverts);
+                _params.renderDraw?.Invoke(_verts, _tcoords, _colours, _nverts);
                 _nverts = 0;
             }
         }
@@ -320,7 +320,7 @@ namespace FontStash.NET
 
         private float GetVertAlign(FonsFont font, int align, short isize)
         {
-            if ((_params.Flags & (uint)FonsFlags.ZeroTopleft) != 0)
+            if ((_params.flags & (uint)FonsFlags.ZeroTopleft) != 0)
             {
                 if ((align & (uint)FonsAlign.Top) != 0)
                 {

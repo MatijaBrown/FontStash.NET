@@ -58,27 +58,27 @@ namespace FontStash.NET
 
             _scratch = new byte[SCRATCH_BUF_SIZE];
 
-            if (_params.RenderCreate != null)
+            if (_params.renderCreate != null)
             {
-                if (!_params.RenderCreate.Invoke(_params.Width, _params.Height))
+                if (!_params.renderCreate.Invoke(_params.width, _params.height))
                 {
                     Dispose();
                     throw new Exception("Failed to create fontstash!");
                 }
             }
 
-            _atlas = new FonsAtlas(_params.Width, _params.Height, INIT_ATLAS_NODES);
+            _atlas = new FonsAtlas(_params.width, _params.height, INIT_ATLAS_NODES);
 
             _fonts = new FonsFont[INIT_FONTS];
             _cfonts = INIT_FONTS;
             _nfonts = 0;
 
-            _itw = 1.0f / _params.Width;
-            _ith = 1.0f / _params.Height;
-            _texData = new byte[_params.Width * _params.Height];
+            _itw = 1.0f / _params.width;
+            _ith = 1.0f / _params.height;
+            _texData = new byte[_params.width * _params.height];
 
-            _dirtyRect[0] = _params.Width;
-            _dirtyRect[1] = _params.Height;
+            _dirtyRect[0] = _params.width;
+            _dirtyRect[1] = _params.height;
             _dirtyRect[2] = 0;
             _dirtyRect[3] = 0;
 
@@ -90,7 +90,7 @@ namespace FontStash.NET
 
         public void Dispose()
         {
-            _params.RenderDelete?.Invoke();
+            _params.renderDelete?.Invoke();
             Array.Clear(_fonts, 0, _nfonts);
             Array.Clear(_states, 0, _nstates);
             _atlas = null;
@@ -108,37 +108,37 @@ namespace FontStash.NET
         #region Metrics
         public void GetAtlasSize(out int width, out int height)
         {
-            width = _params.Width;
-            height = _params.Height;
+            width = _params.width;
+            height = _params.height;
         }
 
         public bool ExpandAtlas(int width, int height)
         {
-            width = Math.Max(width, _params.Width);
-            height = Math.Max(height, _params.Height);
+            width = Math.Max(width, _params.width);
+            height = Math.Max(height, _params.height);
 
-            if (width == _params.Width && height == _params.Height)
+            if (width == _params.width && height == _params.height)
                 return true;
 
             Flush();
 
-            if (_params.RenderResize?.Invoke(width, height) == false)
+            if (_params.renderResize?.Invoke(width, height) == false)
                 return false;
 
             byte[] data = new byte[width * height];
-            for (int i = 0; i < _params.Height; i++)
+            for (int i = 0; i < _params.height; i++)
             {
                 int dstIdx = i * width;
-                int srcIdx = i * _params.Width;
-                Array.Copy(_texData, srcIdx, data, dstIdx, _params.Width);
-                if (width > _params.Width)
+                int srcIdx = i * _params.width;
+                Array.Copy(_texData, srcIdx, data, dstIdx, _params.width);
+                if (width > _params.width)
                 {
-                    Array.Fill<byte>(data, 0, dstIdx + _params.Width, width - _params.Width);
+                    Array.Fill<byte>(data, 0, dstIdx + _params.width, width - _params.width);
                 }
             }
-            if (height > _params.Height)
+            if (height > _params.height)
             {
-                Array.Fill<byte>(data, 0, _params.Height * width, (height - _params.Height) * width);
+                Array.Fill<byte>(data, 0, _params.height * width, (height - _params.height) * width);
             }
 
             _texData = data;
@@ -150,13 +150,13 @@ namespace FontStash.NET
                 maxy = Math.Max(maxy, _atlas.nodes[i].y);
             _dirtyRect[0] = 0;
             _dirtyRect[1] = 0;
-            _dirtyRect[2] = _params.Width;
+            _dirtyRect[2] = _params.width;
             _dirtyRect[3] = maxy;
 
-            _params.Width = width;
-            _params.Height = height;
-            _itw = 1.0f / _params.Width;
-            _ith = 1.0f / _params.Height;
+            _params.width = width;
+            _params.height = height;
+            _itw = 1.0f / _params.width;
+            _ith = 1.0f / _params.height;
 
             return true;
         }
@@ -165,7 +165,7 @@ namespace FontStash.NET
         {
             Flush();
 
-            if (_params.RenderResize.Invoke(width, height) == false)
+            if (_params.renderResize.Invoke(width, height) == false)
                 return false;
 
             _atlas.Reset(width, height);
@@ -187,10 +187,10 @@ namespace FontStash.NET
                 }
             }
 
-            _params.Width = width;
-            _params.Height = height;
-            _itw = 1.0f / _params.Width;
-            _ith = 1.0f / _params.Height;
+            _params.width = width;
+            _params.height = height;
+            _itw = 1.0f / _params.width;
+            _ith = 1.0f / _params.height;
 
             AddWhiteRect(2, 2);
 
@@ -372,14 +372,13 @@ namespace FontStash.NET
                 // empty
             } else if ((state.align & (int)FonsAlign.Right) != 0)
             {
-                float[] _ = Array.Empty<float>();
-                float width = TextBounds(x, y, str, end, ref _);
+                float width = TextBounds(x, y, str, end, out float[] _);
                 x -= width;
 
             } else if ((state.align & (int)FonsAlign.Center) != 0)
             {
                 float[] _ = Array.Empty<float>();
-                float width = TextBounds(x, y, str, end, ref _);
+                float width = TextBounds(x, y, str, end, out float[] _);
                 x -= width * 0.5f;
             }
 
@@ -422,7 +421,7 @@ namespace FontStash.NET
         #endregion
 
         #region Measure Text
-        public float TextBounds(float x, float y, string str, char end, ref float[] bounds)
+        public float TextBounds(float x, float y, string str, char end, out float[] bounds)
         {
             FonsState state = GetState();
             uint codepoint = 0;
@@ -431,6 +430,7 @@ namespace FontStash.NET
             int prevGlyphIndex = -1;
             short isize = (short)(state.size * 10.0f);
             short iblur = (short)state.blur;
+            bounds = new float[] { -1, -1, -1, -1 };
 
             if (state.font < 0 || state.font >= _nfonts)
                 return x;
@@ -462,7 +462,7 @@ namespace FontStash.NET
                         minx = q.x0;
                     if (q.x1 > maxx)
                         maxx = q.x1;
-                    if ((_params.Flags & (uint)FonsFlags.ZeroTopleft) != 0)
+                    if ((_params.flags & (uint)FonsFlags.ZeroTopleft) != 0)
                     {
                         if (q.y0 < miny)
                             miny = q.y0;
@@ -497,13 +497,10 @@ namespace FontStash.NET
                 maxx -= advance * 0.5f;
             }
 
-            if (bounds.Length != 0)
-            {
-                bounds[0] = minx;
-                bounds[1] = miny;
-                bounds[2] = maxx;
-                bounds[3] = maxy;
-            }
+            bounds[0] = minx;
+            bounds[1] = miny;
+            bounds[2] = maxx;
+            bounds[3] = maxy;
 
             return advance;
         }
@@ -522,7 +519,7 @@ namespace FontStash.NET
 
             y += GetVertAlign(font, state.align, isize);
 
-            if ((_params.Flags & (byte)FonsFlags.ZeroTopleft) != 0)
+            if ((_params.flags & (byte)FonsFlags.ZeroTopleft) != 0)
             {
                 miny = y - font.ascender * (float)isize / 10.0f;
                 maxy = miny + font.lineh * isize / 10.0f;
@@ -575,14 +572,12 @@ namespace FontStash.NET
             }
             else if ((state.align & (int)FonsAlign.Right) != 0)
             {
-                float[] _ = Array.Empty<float>();
-                float width = TextBounds(x, y, str, end, ref _);
+                float width = TextBounds(x, y, str, end, out float[] _);
                 x -= width;
             }
             else if ((state.align & (int)FonsAlign.Center) != 0)
             {
-                float[] _ = Array.Empty<float>();
-                float width = TextBounds(x, y, str, end, ref _);
+                float width = TextBounds(x, y, str, end, out float[] _);
                 x -= width * 0.5f;
             }
 
@@ -600,7 +595,7 @@ namespace FontStash.NET
             return true;
         }
 
-        public bool TextIterNext(ref FonsTextIter iter, FonsQuad quad)
+        public bool TextIterNext(ref FonsTextIter iter, ref FonsQuad quad)
         {
             FonsGlyph glyph = null;
             string str = iter.next;
@@ -625,7 +620,7 @@ namespace FontStash.NET
                 iter.y = iter.nexty;
                 glyph = GetGlyph(iter.font, iter.codepoint, iter.isize, iter.iblur, 0);
                 if (glyph != null)
-                    GetQuad(iter.font, iter.prevGlyphIndex, glyph, iter.scale, iter.spacing, ref iter.nextx, ref iter.nexty);
+                    quad = GetQuad(iter.font, iter.prevGlyphIndex, glyph, iter.scale, iter.spacing, ref iter.nextx, ref iter.nexty);
                 iter.prevGlyphIndex = glyph != null ? glyph.index : INVALID;
                 break;
             }
@@ -638,13 +633,14 @@ namespace FontStash.NET
         #region Pull Texture Changes
         public byte[] GetTextureData(out int width, out int height)
         {
-            width = _params.Width;
-            height = _params.Height;
+            width = _params.width;
+            height = _params.height;
             return _texData;
         }
 
-        public bool ValidateTexture(ref int[] dirty)
+        public bool ValidateTexture(out int[] dirty)
         {
+            dirty = new int[] { -1, -1, -1, -1 };
             if (_dirtyRect[0] < _dirtyRect[2] && _dirtyRect[1] < _dirtyRect[3])
             {
                 dirty[0] = _dirtyRect[0];
@@ -652,8 +648,8 @@ namespace FontStash.NET
                 dirty[2] = _dirtyRect[2];
                 dirty[3] = _dirtyRect[3];
 
-                _dirtyRect[0] = _params.Width;
-                _dirtyRect[1] = _params.Height;
+                _dirtyRect[0] = _params.width;
+                _dirtyRect[1] = _params.height;
                 _dirtyRect[2] = 0;
                 _dirtyRect[3] = 0;
                 return true;
@@ -665,8 +661,8 @@ namespace FontStash.NET
         #region Debug
         public void DrawDebug(float x, float y)
         {
-            int w = _params.Width;
-            int h = _params.Height;
+            int w = _params.width;
+            int h = _params.height;
             float u = w == 0 ? 0 : (1.0f / w);
             float v = h == 0 ? 0 : (1.0f / h);
 
