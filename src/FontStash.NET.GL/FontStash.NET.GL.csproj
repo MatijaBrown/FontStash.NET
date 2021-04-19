@@ -2,6 +2,11 @@
 
 	<PropertyGroup>
 		<TargetFramework>net5.0</TargetFramework>
+		<Authors>Matija Brown</Authors>
+		<RepositoryUrl>https://github.com/MatijaBrown/FontStash.NET</RepositoryUrl>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<RepositoryType>git</RepositoryType>
+		<PackageTags>Fontstash FontStash.NET Sharp Rendering Text Font Fontrendering FontStash.NET.GL FontStash GLUtilllity OpenGLText</PackageTags>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

@@ -2,6 +2,12 @@
 
 	<PropertyGroup>
 		<TargetFramework>net5.0</TargetFramework>
+		<Authors>Matija Brown</Authors>
+		<Description>The legacy OpenGL utillity for FontStash.NET</Description>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<RepositoryUrl>https://github.com/MatijaBrown/FontStash.NET</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageTags>Fontstash FontStash.NET Sharp Rendering Text Font Fontrendering FontStash.NET.GL.Legacy LegacyGL GLText LegacyGLText Rendering TextRendering</PackageTags>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

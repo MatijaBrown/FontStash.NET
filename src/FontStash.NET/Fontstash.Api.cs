@@ -554,7 +554,7 @@ namespace FontStash.NET
         #endregion
 
         #region Text iterator
-        public bool TextIterInit(out FonsTextIter iter, float x, float y, string str, char end)
+        public bool TextIterInit(out FonsTextIter iter, float x, float y, string str, char end, FonsGlyphBitmap bitmapOption)
         {
             FonsState state = GetState();
 
@@ -562,13 +562,13 @@ namespace FontStash.NET
 
             if (state.font < 0 || state.font >= _nfonts)
                 return false;
-            FonsFont font = _fonts[state.font];
-            if (font.data == null)
+            iter.font = _fonts[state.font];
+            if (iter.font.data == null)
                 return false;
 
             iter.isize = (short)(state.size * 10.0f);
             iter.iblur = (short)state.blur;
-            iter.scale = FonsTt.GetPixelHeightScale(font.font, (float)iter.isize / 10.0f);
+            iter.scale = FonsTt.GetPixelHeightScale(iter.font.font, (float)iter.isize / 10.0f);
 
             if ((state.align & (int)FonsAlign.Left) != 0)
             {
@@ -595,6 +595,7 @@ namespace FontStash.NET
             iter.end = end;
             iter.codepoint = 0;
             iter.prevGlyphIndex = -1;
+            iter.bitmapOption = bitmapOption;
 
             return true;
         }
@@ -605,7 +606,7 @@ namespace FontStash.NET
             string str = iter.next;
             iter.str = iter.next;
 
-            if (str[0] == iter.end)
+            if (str.Length == 0 || str[0] == iter.end)
             {
                 return false;
             }
@@ -622,13 +623,13 @@ namespace FontStash.NET
 
                 iter.x = iter.nextx;
                 iter.y = iter.nexty;
-                glyph = GetGlyph(iter.font, iter.codepoint, iter.isize, iter.iblur, 0);
+                glyph = GetGlyph(iter.font, iter.codepoint, iter.isize, iter.iblur, iter.bitmapOption);
                 if (glyph != null)
                     quad = GetQuad(iter.font, iter.prevGlyphIndex, glyph, iter.scale, iter.spacing, ref iter.nextx, ref iter.nexty);
                 iter.prevGlyphIndex = glyph != null ? glyph.index : INVALID;
                 break;
             }
-            iter.next = str.Remove(0, i);
+            iter.next = str.Remove(0, i + 1);
 
             return true;
         }

@@ -12,6 +12,7 @@
         public string next;
         public char end;
         public uint utf8state;
+        public FonsGlyphBitmap bitmapOption;
 
     }
 }

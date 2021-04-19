@@ -2,6 +2,17 @@
 
 	<PropertyGroup>
 		<TargetFramework>net5.0</TargetFramework>
+		<Copyright />
+		<PackageId>FontStash.NET</PackageId>
+		<Authors>Matija Brown</Authors>
+		<Company />
+		<Description>A port of Nico Memononen's fontstash to C#. It is a font-rendering library for .ttf-files and can be used with any rendering API. However, helper classes for rendering with modern, as well as legacy OpenGL are provided.</Description>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+		<RepositoryType>git</RepositoryType>
+		<RepositoryUrl>https://github.com/MatijaBrown/FontStash.NET</RepositoryUrl>
+		<PackageTags>Fontstash FontStash.NET Sharp Rendering Text Font Fontrendering</PackageTags>
+		<NeutralLanguage />
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
