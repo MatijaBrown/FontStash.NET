@@ -352,7 +352,7 @@ namespace FontStash.NET
         #endregion
 
         #region Draw Text
-        public float DrawText(float x, float y, string str, char end)
+        public float DrawText(float x, float y, string str, string end)
         {
             FonsState state = GetState();
             uint codepoint = 0;
@@ -391,7 +391,7 @@ namespace FontStash.NET
             for (int i = 0; i < str.Length; i++)
             {
                 char c = str[i];
-                if (c == end)
+                if (str[i..] == end)
                     break;
 
                 if (Utf8.DecUtf8(ref utf8state, ref codepoint, c) != 0)
@@ -421,11 +421,11 @@ namespace FontStash.NET
             return x;
         }
 
-        public float DrawText(float x, float y, string str) => DrawText(x, y, str, '\0');
+        public float DrawText(float x, float y, string str) => DrawText(x, y, str, null);
         #endregion
 
         #region Measure Text
-        public float TextBounds(float x, float y, string str, char end, out float[] bounds)
+        public float TextBounds(float x, float y, string str, string end, out float[] bounds)
         {
             FonsState state = GetState();
             uint codepoint = 0;
@@ -453,7 +453,7 @@ namespace FontStash.NET
             for (int i = 0; i < str.Length; i++)
             {
                 char c = str[i];
-                if (c == end)
+                if (str[i..] == end)
                     break;
 
                 if (Utf8.DecUtf8(ref utf8state, ref codepoint, c) != 0)
@@ -554,7 +554,7 @@ namespace FontStash.NET
         #endregion
 
         #region Text iterator
-        public bool TextIterInit(out FonsTextIter iter, float x, float y, string str, char end, FonsGlyphBitmap bitmapOption)
+        public bool TextIterInit(out FonsTextIter iter, float x, float y, string str, string end, FonsGlyphBitmap bitmapOption)
         {
             FonsState state = GetState();
 
@@ -606,7 +606,7 @@ namespace FontStash.NET
             string str = iter.next;
             iter.str = iter.next;
 
-            if (str.Length == 0 || str[0] == iter.end)
+            if (str.Length == 0 || str == iter.end)
             {
                 return false;
             }
@@ -615,7 +615,7 @@ namespace FontStash.NET
             for (i = 0; i < str.Length; i++)
             {
                 char c = str[i];
-                if (c == iter.end)
+                if (str[i..] == iter.end)
                     break;
 
                 if (Utf8.DecUtf8(ref iter.utf8state, ref iter.codepoint, c) != 0)

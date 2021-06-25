@@ -10,7 +10,7 @@
         public int prevGlyphIndex;
         public string str;
         public string next;
-        public char end;
+        public string end;
         public uint utf8state;
         public FonsGlyphBitmap bitmapOption;
 

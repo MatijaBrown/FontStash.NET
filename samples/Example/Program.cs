@@ -137,28 +137,28 @@ namespace Example
                 fs.SetSize(124.0f);
                 fs.SetFont(fontNormal);
                 fs.SetColour(white);
-                dx = fs.DrawText(dx, dy, "The quick", '\0');
+                dx = fs.DrawText(dx, dy, "The quick", null);
 
                 fs.SetSize(48.0f);
                 fs.SetFont(fontItalic);
                 fs.SetColour(brown);
-                dx = fs.DrawText(dx, dy, "brown ", '\0');
+                dx = fs.DrawText(dx, dy, "brown ", null);
 
                 fs.SetSize(24.0f);
                 fs.SetFont(fontNormal);
                 fs.SetColour(white);
-                dx = fs.DrawText(dx, dy, "fox ", '\0');
+                dx = fs.DrawText(dx, dy, "fox ", null);
 
                 fs.VertMetrics(out asc, out desc, out lh);
                 dx = sx;
                 dy += lh * 1.2f;
                 Dash(dx, dy);
                 fs.SetFont(fontItalic);
-                dx = fs.DrawText(dx, dy, "jumps over ", '\0');
+                dx = fs.DrawText(dx, dy, "jumps over ", null);
                 fs.SetFont(fontBold);
-                dx = fs.DrawText(dx, dy, "the lazy ", '\0');
+                dx = fs.DrawText(dx, dy, "the lazy ", null);
                 fs.SetFont(fontNormal);
-                dx = fs.DrawText(dx, dy, "dog.", '\0');
+                dx = fs.DrawText(dx, dy, "dog.", null);
 
                 dx = sx;
                 dy += lh * 1.2f;

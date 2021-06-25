@@ -13,6 +13,7 @@
 		<RepositoryUrl>https://github.com/MatijaBrown/FontStash.NET</RepositoryUrl>
 		<PackageTags>Fontstash FontStash.NET Sharp Rendering Text Font Fontrendering</PackageTags>
 		<NeutralLanguage />
+		<Version>1.0.1</Version>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
