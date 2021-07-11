@@ -6,26 +6,19 @@
 		<PackageId>FontStash.NET</PackageId>
 		<Authors>Matija Brown</Authors>
 		<Company />
-		<Description>A port of Nico Memononen's fontstash to C#. It is a font-rendering library for .ttf-files and can be used with any rendering API. However, helper classes for rendering with modern, as well as legacy OpenGL are provided.</Description>
+		<Description>A port of Mikko Memononen's fontstash to C#. It is a font-rendering library for .ttf-files and can be used with any rendering API. However, helper classes for rendering with modern, as well as legacy OpenGL are provided.</Description>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
 		<RepositoryType>git</RepositoryType>
 		<RepositoryUrl>https://github.com/MatijaBrown/FontStash.NET</RepositoryUrl>
 		<PackageTags>Fontstash FontStash.NET Sharp Rendering Text Font Fontrendering</PackageTags>
 		<NeutralLanguage />
-		<Version>1.0.1</Version>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<Version>1.1.0</Version>
+		<PackageReleaseNotes>Fixed error with string endings. Changed them to string from char.</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="StbTrueTypeSharp" Version="1.24.7" />
+	  <ProjectReference Include="..\SafeStbTrueTypeSharp\SafeStbTrueTypeSharp.csproj" />
 	</ItemGroup>
 
 </Project>

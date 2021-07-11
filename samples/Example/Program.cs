@@ -15,6 +15,7 @@ namespace Example
         private static WindowHandle* window;
 
         private static bool debug = false;
+        static bool blowup = false;
 
         private static void Dash(float dx, float dy)
         {
@@ -40,6 +41,8 @@ namespace Example
                 glfw.SetWindowShouldClose(window, true);
             if (key == Keys.Space && action == InputAction.Press)
                 debug = !debug;
+            if (key == Keys.B && action == InputAction.Press)
+                blowup = !blowup;
         }
 
         static unsafe void Main(string[] args)
@@ -71,6 +74,8 @@ namespace Example
 
             GLFons glfons = new(gl);
             fs = glfons.Create(512, 512, (int)FonsFlags.ZeroTopleft);
+
+            int ft = fs.AddFont("icons", "./fonts/entypo.ttf", 0);
 
             fontNormal = fs.AddFont("sans", "./fonts/DroidSerif-Regular.ttf", 0);
             if (fontNormal == Fontstash.INVALID)
@@ -121,15 +126,13 @@ namespace Example
                 float sx = 50, sy = 50;
                 float dx = sx, dy = sy;
 
-                float asc, desc, lh;
-
                 Dash(dx, dy);
 
                 fs.ClearState();
 
                 fs.SetSize(124.0f);
                 fs.SetFont(fontNormal);
-                fs.VertMetrics(out asc, out desc, out lh);
+                fs.VertMetrics(out float asc, out float desc, out float lh);
                 dx = sx;
                 dy += lh;
                 Dash(dx, dy);
