@@ -17,8 +17,4 @@
 		<PackageReleaseNotes>Fixed error with string endings. Changed them to string from char.</PackageReleaseNotes>
 	</PropertyGroup>
 
-	<ItemGroup>
-	  <ProjectReference Include="..\SafeStbTrueTypeSharp\SafeStbTrueTypeSharp.csproj" />
-	</ItemGroup>
-
 </Project>
