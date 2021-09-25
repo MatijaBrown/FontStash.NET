@@ -165,8 +165,13 @@ namespace FontStash.NET
         {
             Flush();
 
-            if (_params.renderResize.Invoke(width, height) == false)
-                return false;
+            if (_params.renderResize != null)
+            {
+                if (_params.renderResize.Invoke(width, height) == false)
+                {
+                    return false;
+                }
+            }
 
             _atlas.Reset(width, height);
 

@@ -15,8 +15,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Error", "samples\Error\Erro
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FontStash.NET.GL.Legacy", "src\FontStash.NET.GL.Legacy\FontStash.NET.GL.Legacy.csproj", "{D2634D8C-262F-461C-88F1-E49F63301EB6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FontStash.NET.GL", "src\FontStash.NET.GL\FontStash.NET.GL.csproj", "{E85D4D9B-6554-4DA6-A5C8-E67623DBEE0C}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,10 +37,6 @@ Global
 		{D2634D8C-262F-461C-88F1-E49F63301EB6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D2634D8C-262F-461C-88F1-E49F63301EB6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D2634D8C-262F-461C-88F1-E49F63301EB6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E85D4D9B-6554-4DA6-A5C8-E67623DBEE0C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E85D4D9B-6554-4DA6-A5C8-E67623DBEE0C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E85D4D9B-6554-4DA6-A5C8-E67623DBEE0C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E85D4D9B-6554-4DA6-A5C8-E67623DBEE0C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -52,7 +46,6 @@ Global
 		{689F3205-7F25-4064-B372-2543304A38EB} = {030176B9-BCF9-4294-8FD4-36CCDF9BC602}
 		{37D1F4F1-C5BD-4D59-81BC-73A382C80E5A} = {030176B9-BCF9-4294-8FD4-36CCDF9BC602}
 		{D2634D8C-262F-461C-88F1-E49F63301EB6} = {9D319AA4-7744-4BB2-8067-07A61672F9AD}
-		{E85D4D9B-6554-4DA6-A5C8-E67623DBEE0C} = {9D319AA4-7744-4BB2-8067-07A61672F9AD}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {70047753-B1C9-41FC-A8FF-2C817D8E9605}
